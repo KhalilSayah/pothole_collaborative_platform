@@ -6,7 +6,7 @@
 // and without it any passer-by could invent potholes at will.
 
 import { useRef, useState } from 'react';
-import { CARDS } from '../lib/damage';
+import { CARDS, SEVERITY_AR } from '../lib/damage';
 import type { DamageType, Severity } from '../lib/types';
 import { shrink, locate } from '../lib/image';
 import { uploadPhoto, isCloudEnabled } from '../lib/supabase';
@@ -211,6 +211,7 @@ export default function PhotoReport() {
               >
                 <span className="e">{c.icon}</span>
                 <span className="t">{c.label}</span>
+                <span className="t-ar" lang="ar" dir="rtl">{c.ar}</span>
               </button>
             ))}
           </div>
@@ -223,7 +224,9 @@ export default function PhotoReport() {
               .map(([k, t, e]) => (
                 <button key={k} className={'choice' + (sev === k ? ' on' : '')}
                         onClick={() => setSev(k)}>
-                  <span className="e">{e}</span><span className="t">{t}</span>
+                  <span className="e">{e}</span>
+                  <span className="t">{t}</span>
+                  <span className="t-ar" lang="ar" dir="rtl">{SEVERITY_AR[k]}</span>
                 </button>
               ))}
           </div>

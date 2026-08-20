@@ -136,6 +136,7 @@
 .drive .dcard .icon { font-size: 26px; }
 .drive .dcard .label { font-size: 14px; }
 .drive .dcard .sub { display: none; }
+.drive .dcard .ar { font-size: 13px; }
 }
 
 .drive .dcard {
@@ -148,6 +149,13 @@
 .drive .dcard .icon { font-size: 34px; line-height: 1; }
 .drive .dcard .label { font-weight: 700; font-size: 16px; }
 .drive .dcard .sub { font-size: 11px; color: var(--muted); }
+/* The Arabic term stays visible in landscape, unlike the French gloss: it is
+   the word the driver actually scans for. */
+.drive .dcard .ar {
+  font-size: 15px; color: var(--muted); line-height: 1.6;
+  font-family: 'Noto Naskh Arabic', 'Geeza Pro', 'Segoe UI', Tahoma, sans-serif;
+}
+.drive .dcard.hit .ar { color: #04160c; opacity: .8; }
 
 .drive .dcard:active { transform: scale(.95); }
 /* Confirmation must be readable at a glance, in peripheral vision. */

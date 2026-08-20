@@ -54,7 +54,7 @@ export default function TrainingPrompt({ event, onAnswer, timeoutMs = 15000 }: P
             >
               <span className="ic">{o.icon}</span>
               <span className="tx">{o.text}</span>
-              <span className="hint">{o.hint}</span>
+              <span className="hint" lang="ar" dir="rtl">{o.ar}</span>
             </button>
           ))}
         </div>

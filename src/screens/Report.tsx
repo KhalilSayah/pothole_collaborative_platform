@@ -53,7 +53,11 @@ export default function Report({ active, onReport }: Props) {
         >
           <span className="icon">{hits[c.type] ? '✓' : c.icon}</span>
           <span className="label">{hits[c.type] ? 'Signalé' : c.label}</span>
-          <span className="sub">{c.sub}</span>
+          {/* The Arabic term, not the French gloss: at speed the driver needs
+              the word they actually use, and there is only room for one. */}
+          <span className="ar" lang="ar" dir="rtl">
+            {hits[c.type] ? 'تم' : c.ar}
+          </span>
         </button>
       ))}
     </div>

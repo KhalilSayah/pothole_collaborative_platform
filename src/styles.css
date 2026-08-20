@@ -10,6 +10,10 @@
    ========================================================================== */
 
 :root {
+  /* Arabic glyphs need a font that actually has them and a touch more leading;
+     the Latin stack renders them as fallback boxes on some Android builds. */
+  --font-ar: 'Noto Naskh Arabic', 'Geeza Pro', 'Segoe UI', Tahoma, sans-serif;
+
   --ink:        #0b1220;
   --ink-2:      #334155;
   --ink-3:      #64748b;
@@ -384,6 +388,11 @@ p  { margin: 0; }
 .choice.on { border-color: var(--brand); background: var(--brand-tint); }
 .choice .e { font-size: 25px; line-height: 1; }
 .choice .t { font-weight: 600; font-size: .85rem; }
+.choice .t-ar {
+  font-size: .82rem; color: var(--ink-3); line-height: 1.5;
+  font-family: var(--font-ar);
+}
+.choice.on .t-ar { color: var(--brand-dark); }
 
 /* Photo capture. */
 .shot {

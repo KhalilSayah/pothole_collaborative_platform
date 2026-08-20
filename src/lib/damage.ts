@@ -1,33 +1,48 @@
 import type { DamageType } from './types';
+import { TERMS, SEVERITY_TERMS } from './locale';
 
 /**
  * The report cards.
  *
- * Labels are French, the working language for drivers in Tlemcen. Change them
- * here and the whole UI follows — nothing else hard-codes them.
- *
- * Kept to six so the grid stays readable in landscape and each target stays
- * large enough to hit without looking away from the road for long.
+ * Wording lives in locale.ts so the Algerian terms can be corrected in one
+ * place. Six cards, so the grid stays readable in landscape and every target
+ * stays big enough to hit without looking away from the road for long.
  */
 export interface DamageCard {
   type: DamageType;
   label: string;
+  ar: string;
+  dz: string;
   sub: string;
   icon: string;
   color: string;
 }
 
-export const CARDS: DamageCard[] = [
-  { type: 'pothole',        label: 'Nid-de-poule', sub: 'Trou dans la chaussée', icon: '🕳️', color: '#e5484d' },
-  { type: 'depression',     label: 'Affaissement', sub: 'Chaussée enfoncée',     icon: '🌊', color: '#f5a524' },
-  { type: 'bump',           label: 'Dos d’âne',  sub: 'Bosse, ralentisseur',   icon: '⛰️', color: '#a45cf5' },
-  { type: 'broken_surface', label: 'Chaussée dégradée', sub: 'Gravier, revêtement usé', icon: '🪨', color: '#8b949e' },
-  { type: 'manhole',        label: 'Regard',       sub: 'Plaque d’égout',      icon: '⭕', color: '#2a6df4' },
-  { type: 'crack',          label: 'Fissure',      sub: 'Craquelure, faïençage',  icon: '⚡', color: '#3fb950' },
+const STYLE: Record<string, { icon: string; color: string }> = {
+  pothole:        { icon: '🕳️', color: '#e5484d' },
+  depression:     { icon: '🌊', color: '#f5a524' },
+  bump:           { icon: '⛰️', color: '#a45cf5' },
+  broken_surface: { icon: '🪨', color: '#8b949e' },
+  manhole:        { icon: '⭕', color: '#2a6df4' },
+  crack:          { icon: '⚡', color: '#3fb950' },
+};
+
+// Order matters: it is the order of the buttons a driver reaches for, so the
+// commonest defect comes first.
+const ORDER: DamageType[] = [
+  'pothole', 'depression', 'bump', 'broken_surface', 'manhole', 'crack',
 ];
 
-export const SEVERITY_LABEL: Record<string, string> = {
-  low: 'Léger', medium: 'Moyen', high: 'Grave',
-};
+export const CARDS: DamageCard[] = ORDER.map(type => {
+  const t = TERMS[type];
+  const st = STYLE[type];
+  return { type, label: t.fr, ar: t.ar, dz: t.dz, sub: t.hint, ...st };
+});
+
+export const SEVERITY_LABEL: Record<string, string> =
+  Object.fromEntries(Object.entries(SEVERITY_TERMS).map(([k, v]) => [k, v.fr]));
+
+export const SEVERITY_AR: Record<string, string> =
+  Object.fromEntries(Object.entries(SEVERITY_TERMS).map(([k, v]) => [k, v.ar]));
 
 export const cardFor = (t: DamageType) => CARDS.find(c => c.type === t);

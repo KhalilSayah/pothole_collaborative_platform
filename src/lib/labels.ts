@@ -15,6 +15,7 @@ export type AccelLabel =
 export interface LabelOption {
   label: AccelLabel;
   text: string;
+  ar: string;
   hint: string;
   icon: string;
   color: string;
@@ -23,12 +24,12 @@ export interface LabelOption {
 }
 
 export const LABELS: LabelOption[] = [
-  { label: 'pothole',        text: 'Nid-de-poule',  hint: 'Trou, creux',            icon: '🕳️', color: '#e5484d', damage: 'pothole' },
-  { label: 'speed_bump',     text: 'Dos d’âne',   hint: 'Ralentisseur, bosse',    icon: '⛰️', color: '#a45cf5', damage: 'bump' },
-  { label: 'hard_braking',   text: 'Freinage',      hint: 'Freinage ou accélération', icon: '🛑', color: '#f5a524', damage: null },
-  { label: 'road_vibration', text: 'Route normale', hint: 'Vibration, rugosité',    icon: '〰️', color: '#3fb950', damage: null },
-  { label: 'manhole',        text: 'Plaque / joint',hint: 'Regard, joint de route', icon: '⭕', color: '#2a6df4', damage: 'manhole' },
-  { label: 'other',          text: 'Autre',         hint: 'Rien de tout cela',      icon: '❓', color: '#8b949e', damage: 'other' },
+  { label: 'pothole',        text: 'Nid-de-poule',  ar: 'حفرة',        hint: 'Trou, creux',              icon: '🕳️', color: '#e5484d', damage: 'pothole' },
+  { label: 'speed_bump',     text: 'Dos d’âne',   ar: 'كاسور',       hint: 'Ralentisseur, bosse',      icon: '⛰️', color: '#a45cf5', damage: 'bump' },
+  { label: 'hard_braking',   text: 'Freinage',      ar: 'فرملة',       hint: 'Freinage ou accélération', icon: '🛑', color: '#f5a524', damage: null },
+  { label: 'road_vibration', text: 'Route normale', ar: 'طريق عادية',  hint: 'Vibration, rugosité',      icon: '〰️', color: '#3fb950', damage: null },
+  { label: 'manhole',        text: 'Plaque',        ar: 'بالوعة',      hint: 'Regard, joint de route',   icon: '⭕', color: '#2a6df4', damage: 'manhole' },
+  { label: 'other',          text: 'Autre',         ar: 'شيء آخر',     hint: 'Rien de tout cela',        icon: '❓', color: '#8b949e', damage: 'other' },
 ];
 
 /** Labels that should NOT create a public map entry. */
