@@ -15,6 +15,7 @@ import L from 'leaflet';
 import 'leaflet.heat';
 import type { Cluster } from '../lib/types';
 import { cardFor, SEVERITY_LABEL } from '../lib/damage';
+import FocusCard from './FocusCard';
 
 export const TLEMCEN: [number, number] = [34.8828, -1.3167];
 
@@ -101,7 +102,7 @@ function Bubbles({
               eventHandlers={{
                 mouseover: e => onHover(b, map.latLngToContainerPoint(e.latlng)),
                 mouseout: () => onHover(null),
-                click: () => onPick(b),
+                click: () => { onHover(null); onPick(b); },
               }}
             />
           );
@@ -336,22 +337,8 @@ export default function MapView({
 
       {hoverCard}
 
-      {picked && (
-        <div className="map-panel" style={{ right: 14, bottom: 14, padding: 16, width: 250 }}>
-          <div className="row" style={{ marginBottom: 6 }}>
-            <b className="grow">{cardFor(picked.damage_type ?? 'other')?.label ?? 'Défaut'}</b>
-            <button onClick={() => setPicked(null)} style={{ color: 'var(--ink-3)' }}>✕</button>
-          </div>
-          <div className="small muted">{picked.road_name ?? 'Route non nommée'}</div>
-          <div className="small" style={{ marginTop: 8 }}>
-            {SEVERITY_LABEL[picked.severity ?? 'low']} · {picked.n_observations} observation(s)
-            · {picked.n_rides} trajet(s)
-          </div>
-          <div className="small muted" style={{ marginTop: 4 }}>
-            Méthodes : {picked.method_mix?.join(', ') || '—'}
-          </div>
-        </div>
-      )}
+      {picked && <FocusCard item={picked} onClose={() => setPicked(null)} />}
+
     </div>
   );
 }

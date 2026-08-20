@@ -42,6 +42,9 @@ export function demoRows(n = 220): Cluster[] {
       n_rides: rides,
       method_mix: rides > 1 ? ['accel', 'manual'] : ['manual'],
       status: (rides > 1 ? 'confirmed' : 'candidate') as Cluster['status'],
+      // No path: the focus card then exercises its "sensor report, no photo"
+      // branch, which is the common case for accelerometer detections.
+      image_path: null,
       last_seen: new Date().toISOString(),
     };
   });

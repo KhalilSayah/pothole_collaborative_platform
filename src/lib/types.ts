@@ -75,6 +75,10 @@ export interface Cluster {
   method_mix: string[];
   status: 'candidate' | 'confirmed' | 'repaired';
   last_seen: string;
+  first_seen?: string;
+  road_type?: string | null;
+  /** Representative photo, chosen from the cluster's verified observations. */
+  image_path?: string | null;
 }
 
 export interface AccelEvent {
