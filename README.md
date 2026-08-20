@@ -180,6 +180,43 @@ collects.
 
 ---
 
+## Verifying photo reports
+
+Nothing verifies automatically. There is no cron, no Edge Function, no
+server-side scheduler — the SQL trigger only *blocks*, it decides nothing. A
+photo report stays `pending` until the worker is run by hand:
+
+```bash
+cd ../pothole
+export SUPABASE_URL=https://xxxx.supabase.co
+export SUPABASE_SERVICE_KEY=...          # service_role, never ship this to a client
+.venv/bin/python verify_worker.py --once --dry-run
+```
+
+`--dry-run` prints the verdicts and writes nothing. Use it first: the default
+thresholds were set for full dashcam frames, and a pedestrian photo is a
+close-up that scores far lower on the same model. Measured on real photos:
+
+| photo | score | at defaults | at `--accept 0.15 --reject 0.08` |
+|---|---|---|---|
+| real pothole | 0.17 | rejected | verified |
+| real pothole | 0.22 | review | verified |
+| a doorway (false positive) | 0.00 | rejected | rejected |
+
+So the model separates correctly, but the default cut would throw away genuine
+reports. Once a threshold looks right, drop `--dry-run`:
+
+```bash
+.venv/bin/python verify_worker.py --once --accept 0.15 --reject 0.08
+.venv/bin/python verify_worker.py --watch 60 --accept 0.15 --reject 0.08
+```
+
+Three images is not a calibration. Collect a few dozen real pedestrian photos,
+re-run the sweep, and set the thresholds from that.
+
+`supabase/moderate.sql` does the same job by hand: list what is pending,
+approve or reject, and confirm the result reached `public_map`.
+
 ## Method 1 — camera
 
 Shown greyed out, labelled *Avancé*. It needs video processing that does not
