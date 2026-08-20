@@ -279,9 +279,25 @@ create policy clusters_read on clusters for select to anon using (true);
 -- Table-level privileges. RLS decides WHICH rows; grants decide whether the
 -- role may touch the table at all. Both are required.
 grant usage on schema public to anon;
-grant insert         on rides, observations, accel_feedback to anon;
-grant update         on rides, observations to anon;
-grant select         on clusters               to anon;
+grant insert on rides, observations, accel_feedback to anon;
+grant update on rides, observations to anon;
+
+-- SELECT is required even though clients must never read this data.
+--
+-- `update rides set ... where id = $1` reads the id column, and PostgreSQL
+-- demands SELECT privilege on every column a statement reads — including ones
+-- only used in a WHERE clause. Without it the update fails with
+-- "permission denied for table rides".
+--
+-- Privacy is preserved by RLS rather than by the grant: there is deliberately
+-- NO select policy on either table, so a genuine `select * from observations`
+-- returns zero rows. The UPDATE still works because row visibility for an
+-- UPDATE is governed by the update policy's USING clause, not by a select
+-- policy. Grant answers "may this role touch the table"; RLS answers "which
+-- rows" — and here the answer to the second question is still "none".
+grant select on rides, observations to anon;
+
+grant select on clusters to anon;
 -- public_map is granted where it is created, further down.
 
 -- ============================================================================
