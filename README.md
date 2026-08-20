@@ -189,9 +189,14 @@ photo report stays `pending` until the worker is run by hand:
 ```bash
 cd ../pothole
 export SUPABASE_URL=https://xxxx.supabase.co
-export SUPABASE_SERVICE_KEY=...          # service_role, never ship this to a client
+export SUPABASE_SERVICE_KEY=...          # service_role / secret. NOT the anon key.
 .venv/bin/python verify_worker.py --once --dry-run
 ```
+
+The key matters: `observations` has RLS enabled with no select policy, so an
+anon key returns HTTP 200 and an empty list rather than a permission error —
+indistinguishable from an empty queue. The worker now decodes the key and
+refuses to start on the wrong one.
 
 `--dry-run` prints the verdicts and writes nothing. Use it first: the default
 thresholds were set for full dashcam frames, and a pedestrian photo is a
