@@ -45,6 +45,23 @@ interface Bubble {
   worst: string;
 }
 
+/** Widest gap between a bubble's points, in metres. */
+function spreadMeters(items: Cluster[]): number {
+  if (items.length < 2) return 0;
+  const lat = items.reduce((a, b) => a + b.lat, 0) / items.length;
+  const kx = Math.cos((lat * Math.PI) / 180) * 111320;
+  const ky = 110540;
+  let max = 0;
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      max = Math.max(max, Math.hypot(
+        (items[i].lon - items[j].lon) * kx,
+        (items[i].lat - items[j].lat) * ky));
+    }
+  }
+  return max;
+}
+
 /** Collapse nearby points into bubbles, working in pixels at the current zoom. */
 function makeBubbles(rows: Cluster[], map: L.Map, cell = 58): Bubble[] {
   const buckets = new Map<string, Cluster[]>();
@@ -118,7 +135,17 @@ function Bubbles({
             eventHandlers={{
               mouseover: e => onHover(b, map.latLngToContainerPoint(e.latlng)),
               mouseout: () => onHover(null),
-              click: () => { onHover(null); map.flyTo([b.lat, b.lon], map.getZoom() + 2, { duration: .6 }); },
+              click: () => {
+                onHover(null);
+                // Zooming only helps if the points would actually separate.
+                // Reports at the same spot stay merged at every zoom level, so
+                // clicking would look broken; open them instead.
+                if (spreadMeters(b.items) > 12 && map.getZoom() < 18) {
+                  map.flyTo([b.lat, b.lon], map.getZoom() + 2, { duration: .6 });
+                } else {
+                  onPick(b);
+                }
+              },
             }}
           />
         );
@@ -222,7 +249,7 @@ export default function MapView({
 }: Props) {
   const [sev, setSev] = useState<string>('all');
   const [hover, setHover] = useState<{ b: Bubble; x: number; y: number } | null>(null);
-  const [picked, setPicked] = useState<Cluster | null>(null);
+  const [picked, setPicked] = useState<Cluster[] | null>(null);
 
   const view = useMemo(
     () => sev === 'all' ? rows : rows.filter(r => r.severity === sev),
@@ -298,7 +325,7 @@ export default function MapView({
         <ZoomSwitch
           rows={view}
           onHover={onHover}
-          onPick={b => setPicked(b.items[0])}
+          onPick={b => setPicked(b.items)}
         />
         <FitAll rows={rows} />
         <Resizer />
@@ -337,7 +364,7 @@ export default function MapView({
 
       {hoverCard}
 
-      {picked && <FocusCard item={picked} onClose={() => setPicked(null)} />}
+      {picked && <FocusCard items={picked} onClose={() => setPicked(null)} />}
 
     </div>
   );

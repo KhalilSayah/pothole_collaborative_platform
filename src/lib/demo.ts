@@ -27,7 +27,9 @@ export function demoRows(n = 220): Cluster[] {
 
   return Array.from({ length: n }, (_, i) => {
     const h = hubs[Math.floor(rnd() * hubs.length)];
-    const spread = 0.004 + rnd() * 0.012;
+    // One in six sits almost exactly on another report, reproducing the case
+    // where zooming can never separate the markers.
+    const spread = rnd() < 0.17 ? 0.00004 : 0.004 + rnd() * 0.012;
     const sev = rnd() < 0.22 ? 'high' : rnd() < 0.55 ? 'medium' : 'low';
     const rides = 1 + Math.floor(rnd() * 4);
     return {
