@@ -11,7 +11,7 @@ import type { DamageType, Severity } from '../lib/types';
 import { shrink, locate } from '../lib/image';
 import { uploadPhoto, isCloudEnabled } from '../lib/supabase';
 import { enqueue } from '../lib/queue';
-import { flush } from '../lib/sync';
+import { flush, onSync } from '../lib/sync';
 import Reveal from '../components/Reveal';
 
 const uuid = () =>
@@ -28,6 +28,7 @@ export default function PhotoReport() {
   const [stage, setStage] = useState<Stage>('idle');
   const [err, setErr] = useState<string | null>(null);
   const [photoWarn, setPhotoWarn] = useState<string | null>(null);
+  const [syncErr, setSyncErr] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   function pick(f: File | null) {
@@ -95,7 +96,17 @@ export default function PhotoReport() {
       });
 
       await flush();
+
+      // flush() swallows server errors by design — the queue retries rather
+      // than losing data. But telling someone "enregistré" when the server
+      // rejected the row would hide the only useful diagnostic, so read the
+      // sync state back and say what actually happened.
+      let syncErr: string | null = null;
+      const off = onSync(st => { syncErr = st.lastError; });
+      off();
+
       setPhotoWarn(photoWarning);
+      setSyncErr(syncErr);
       setStage('done');
     } catch (e: any) {
       setErr(e?.message ?? String(e));
@@ -106,19 +117,28 @@ export default function PhotoReport() {
   function reset() {
     setFile(null); setPreview(null); setNote('');
     setType('pothole'); setSev('medium'); setStage('idle');
-    setErr(null); setPhotoWarn(null);
+    setErr(null); setPhotoWarn(null); setSyncErr(null);
   }
 
   if (stage === 'done') {
     return (
       <div className="wrap sec">
         <Reveal className="narrow center">
-          <div style={{ fontSize: 60 }}>✅</div>
-          <h2 style={{ marginTop: 18 }}>Merci, c’est enregistré</h2>
+          <div style={{ fontSize: 60 }}>{syncErr ? '📥' : '✅'}</div>
+          <h2 style={{ marginTop: 18 }}>
+            {syncErr ? 'Enregistré sur votre appareil' : 'Merci, c’est enregistré'}
+          </h2>
           <p className="lede" style={{ marginTop: 14 }}>
-            Votre signalement part en vérification. Une fois confirmé, il apparaît
-            sur la carte publique.
+            {syncErr
+              ? "Le serveur n’a pas accepté l’envoi pour l’instant. Votre signalement est conservé et sera renvoyé automatiquement."
+              : 'Votre signalement part en vérification. Une fois confirmé, il apparaît sur la carte publique.'}
           </p>
+          {syncErr && (
+            <div className="note bad" style={{ marginTop: 22, textAlign: 'left' }}>
+              <span>✕</span>
+              <span><b>Détail technique :</b> {syncErr}</span>
+            </div>
+          )}
           {photoWarn && (
             <div className="note warn" style={{ marginTop: 22, textAlign: 'left' }}>
               <span>⚠️</span>
