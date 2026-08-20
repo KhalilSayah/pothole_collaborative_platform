@@ -58,3 +58,25 @@ export async function fetchMap(bbox?: [number, number, number, number]) {
   if (error) throw error;
   return data ?? [];
 }
+
+/**
+ * Upload a report photo to Supabase Storage.
+ *
+ * Images are downscaled before upload: a modern phone produces 4–8 MB shots, and
+ * a verification model gains nothing from that resolution while a person on
+ * mobile data pays for every byte.
+ */
+export async function uploadPhoto(blob: Blob, name: string): Promise<string> {
+  if (!supabase) throw new Error('offline-only');
+  const path = `reports/${new Date().toISOString().slice(0, 10)}/${name}`;
+  const { error } = await supabase.storage
+    .from('pothole-images')
+    .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+export function publicPhotoUrl(path: string): string | null {
+  if (!supabase) return null;
+  return supabase.storage.from('pothole-images').getPublicUrl(path).data.publicUrl;
+}

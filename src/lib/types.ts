@@ -1,7 +1,7 @@
 // Unified data format. Mirrors supabase/schema.sql exactly — every collection
 // method produces this same shape, which is what makes fusion possible.
 
-export type CollectionMethod = 'camera' | 'accel' | 'manual';
+export type CollectionMethod = 'camera' | 'accel' | 'manual' | 'photo';
 
 export type DamageType =
   | 'pothole' | 'crack' | 'depression' | 'bump'
@@ -44,6 +44,9 @@ export interface Observation {
 
   payload: Record<string, unknown>;
   image_path?: string | null;
+  /** Photo reports arrive 'pending' and are kept off the map until checked. */
+  verification_status?: 'pending' | 'verified' | 'rejected' | 'review';
+  note?: string | null;
 }
 
 export interface Ride {

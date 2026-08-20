@@ -1,0 +1,236 @@
+/* Driving mode — dark by design. A white screen in a windscreen mount at
+   night is genuinely dangerous, so this stays dark regardless of the
+   site theme. Scoped under .drive so it cannot leak into the light UI. */
+
+/* Tokens are redeclared on .drive rather than :root. The public site owns
+   :root and is light; these must override it only inside the driving shell. */
+.drive {
+  --surface:   #151a21;
+  --surface-2: #1e242d;
+  --line:      #2a323d;
+  --text:      #eef2f7;
+  --muted:     #94a3b8;
+  --accent:    #2a6df4;
+  --danger:    #e5484d;
+  --warn:      #f5a524;
+  --ok:        #3fb950;
+  --r:         14px;
+
+  /* The driving shell replaces the page entirely: fixed to the viewport so the
+     card grid can fill it, and dvh so iOS Safari's toolbar cannot crop the
+     bottom row of controls. */
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: #0a0c10;
+  color: var(--text);
+  font: 16px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.drive h1, .drive h2, .drive h3 { letter-spacing: normal; }
+.drive button { color: inherit; }
+.drive input[type="checkbox"] { accent-color: var(--accent); }
+
+/* ---------------------------------------------------------------- shell */
+.drive .topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; background: var(--surface);
+  border-bottom: 1px solid var(--line); flex: 0 0 auto;
+}
+.drive .topbar h1 { font-size: 16px; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+.drive .spacer { flex: 1; }
+
+.drive .chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px;
+  background: var(--surface-2); color: var(--muted); white-space: nowrap;
+}
+.drive .chip.ok { color: var(--ok); }
+.drive .chip.warn { color: var(--warn); }
+.drive .chip.bad { color: var(--danger); }
+.drive .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+.drive .dot.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+
+.drive .content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px; }
+.drive .content.flush { padding: 0; overflow: hidden; }
+
+.drive .tabs {
+  display: flex; flex: 0 0 auto;
+  background: var(--surface); border-top: 1px solid var(--line);
+}
+.drive .tabs button {
+  flex: 1; padding: 10px 4px 12px; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; color: var(--muted); font-size: 11px;
+}
+.drive .tabs button.active { color: var(--accent); }
+.drive .tabs button span.i { font-size: 20px; line-height: 1; }
+.drive .tabs button:disabled { opacity: .35; }
+
+/* ---------------------------------------------------------------- generic */
+.drive .card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 14px; margin-bottom: 12px;
+}
+.drive .card h2 { margin: 0 0 8px; font-size: 15px; }
+.drive .muted { color: var(--muted); font-size: 13px; }
+.drive .row { display: flex; gap: 10px; align-items: center; }
+.drive .grow { flex: 1; }
+
+.drive .btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 16px; border-radius: var(--r); background: var(--accent);
+  font-weight: 700; font-size: 17px; width: 100%;
+}
+.drive .btn.big { padding: 22px; font-size: 19px; }
+.drive .btn.ghost { background: var(--surface-2); }
+.drive .btn.danger { background: var(--danger); }
+.drive .btn:disabled { opacity: .4; }
+
+.drive .stat { text-align: center; }
+.drive .stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.drive .stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+.drive .banner {
+  padding: 12px 14px; border-radius: var(--r); margin-bottom: 12px; font-size: 14px;
+  background: #2a1f0d; color: #ffd08a; border: 1px solid #5a4315;
+}
+.drive .banner.bad { background: #2b1214; color: #ffb4b7; border-color: #6b2126; }
+.drive .banner.ok { background: #0f2418; color: #9ae6b4; border-color: #1d5236; }
+
+/* ==========================================================================
+   METHOD 3 — the report grid.
+
+   This is the screen a moving driver actually uses, so it fills the viewport
+   with as few, as large targets as possible. The grid is driven by aspect
+   ratio rather than a width breakpoint, because "landscape" is the real
+   condition — a phone in a car mount is landscape regardless of its size.
+   ========================================================================== */
+.drive .report {
+  display: grid; gap: 8px; padding: 8px; height: 100%;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr;
+}
+
+/* Landscape: 3 across x 2 down puts all six cards on screen at once, so the
+   driver never scrolls and never hunts. */
+@media (orientation: landscape) {
+.drive .report { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Short landscape (most phones on their side): tighten everything so six full
+   cards still fit without clipping. */
+@media (orientation: landscape) and (max-height: 460px) {
+.drive .report { gap: 6px; padding: 6px; }
+.drive .dcard .icon { font-size: 26px; }
+.drive .dcard .label { font-size: 14px; }
+.drive .dcard .sub { display: none; }
+}
+
+.drive .dcard {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; border-radius: var(--r); background: var(--surface);
+  border: 2px solid var(--line); padding: 8px; text-align: center;
+  transition: transform .08s ease, background .12s ease;
+  min-height: 0;
+}
+.drive .dcard .icon { font-size: 34px; line-height: 1; }
+.drive .dcard .label { font-weight: 700; font-size: 16px; }
+.drive .dcard .sub { font-size: 11px; color: var(--muted); }
+
+.drive .dcard:active { transform: scale(.95); }
+/* Confirmation must be readable at a glance, in peripheral vision. */
+.drive .dcard.hit { background: var(--ok); border-color: var(--ok); color: #04160c; }
+.drive .dcard.hit .sub { color: #04160c; opacity: .75; }
+
+.drive .report-off {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; padding: 24px; text-align: center; color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- prompt */
+/* The calibration question. Deliberately covers the screen: it needs an answer,
+   and a missed one is a lost training label. */
+.drive .prompt-back {
+  position: fixed; inset: 0; background: #000a; z-index: 50;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  backdrop-filter: blur(3px);
+}
+.drive .prompt {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+  padding: 20px; width: 100%; max-width: 460px; text-align: center;
+}
+.drive .prompt h3 { margin: 0 0 6px; font-size: 19px; }
+.drive .prompt .row { margin-top: 16px; gap: 10px; }
+.drive .prompt .btn { flex: 1; }
+
+@media (orientation: landscape) and (max-height: 460px) {
+.drive .prompt { display: flex; align-items: center; gap: 16px; text-align: left; max-width: 640px; }
+.drive .prompt .head { flex: 1; }
+.drive .prompt h3 { font-size: 17px; }
+.drive .prompt .row { margin-top: 0; flex-direction: column; width: 150px; }
+}
+
+/* ---------------------------------------------------------------- meter */
+.drive .meter { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.drive .meter i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+
+.drive .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.drive .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+/* ---------------------------------------------------------------- map */
+.drive .mapwrap { height: 100%; width: 100%; }
+.drive .leaflet-container { height: 100%; width: 100%; background: #0a0c10; }
+
+.drive .method-row {
+  display: flex; align-items: center; gap: 12px; padding: 14px;
+  border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--surface); margin-bottom: 10px;
+}
+.drive .method-row .ic { font-size: 26px; }
+.drive .method-row.disabled { opacity: .45; }
+.drive .badge {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  padding: 3px 7px; border-radius: 5px; background: var(--surface-2); color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- training */
+/* The multi-class prompt. Six options must be answerable at a glance, and in
+   landscape the whole thing has to fit above the fold without scrolling. */
+.drive .prompt.train { max-width: 560px; text-align: left; }
+.drive .train-head h3 { margin: 0 0 4px; }
+
+.drive .train-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-top: 12px;
+}
+.drive .tcard {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 6px; border-radius: 12px;
+  background: var(--surface-2); border: 2px solid var(--line); text-align: center;
+}
+.drive .tcard:active { transform: scale(.95); }
+.drive .tcard .ic { font-size: 24px; line-height: 1; }
+.drive .tcard .tx { font-weight: 700; font-size: 13px; }
+.drive .tcard .hint { font-size: 10px; color: var(--muted); }
+
+@media (orientation: landscape) and (max-height: 460px) {
+.drive .prompt.train { display: block; max-width: 92vw; padding: 12px; }
+.drive .train-grid { grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; }
+.drive .tcard { padding: 8px 4px; }
+.drive .tcard .ic { font-size: 20px; }
+.drive .tcard .tx { font-size: 11px; }
+.drive .tcard .hint { display: none; }
+.drive .prompt.train .btn { padding: 10px; font-size: 14px; }
+}
