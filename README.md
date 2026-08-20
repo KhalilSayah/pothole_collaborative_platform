@@ -195,10 +195,18 @@ listing, no deletion. Path goes in `observations.image_path`.
 
 ### Supabase
 
+**The database starts empty — the tables do not create themselves.** Until the
+schema is applied, every insert from the app fails.
+
 1. Create a project. **Settings → API** gives the URL and the **anon** key.
-2. Run `supabase/schema.sql` in the SQL editor. It enables PostGIS, creates the
-   tables, RLS policies, fusion functions and the training view.
-3. Create the storage bucket (SQL at the bottom of the schema file).
+2. **SQL Editor → New query →** paste all of `supabase/schema.sql` → Run.
+   It enables PostGIS, creates the tables, RLS policies, grants, fusion
+   functions and the training view.
+3. Paste and run `supabase/verify.sql`. It inserts an accelerometer hit and a
+   manual report 5 m apart and asserts they fused into one cluster, then cleans
+   up. If it prints `ALL CHECKS PASSED`, the backend is working end to end.
+4. Create the storage bucket (SQL at the bottom of the schema file) — only
+   needed for method 1 images.
 
 ```bash
 cp .env.example .env
@@ -275,7 +283,11 @@ exists.
   hit, not the hole's depth. Speed normalisation helps; it is not a depth sensor.
 - **GPS error ~5 m** sets the dedup floor. Two real potholes closer than the
   cluster radius will merge.
-- **`fuse_ride` and the trigger SQL are unrun.** No PostGIS was available locally
-  to execute them. Reviewed by hand — one real bug (a self-referencing CTE
-  missing `WITH RECURSIVE`) was found and fixed that way — but run the schema on
-  a scratch Supabase project before trusting it.
+- **The SQL is parse-validated, not execution-tested.** No PostGIS server was
+  available locally, so the schema was checked against the real PostgreSQL
+  grammar (`pglast`) and reviewed by hand. Four genuine bugs were found that
+  way: a self-referencing CTE missing `WITH RECURSIVE`; fusion functions that
+  RLS would have blocked without `SECURITY DEFINER`; a `GRANT` on a view before
+  the view existed; and unqualified PostGIS calls that fail because Supabase
+  installs the extension into the `extensions` schema. Run `verify.sql` to
+  confirm the rest.

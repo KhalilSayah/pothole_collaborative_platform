@@ -17,8 +17,14 @@
 --     by the same person are not linkable by design.
 -- ============================================================================
 
-create extension if not exists postgis;
-create extension if not exists "uuid-ossp";
+-- Supabase installs PostGIS into the `extensions` schema, not `public`. Without
+-- `extensions` on the search_path every unqualified st_* call below fails to
+-- resolve, so this line is load-bearing rather than cosmetic.
+create schema if not exists extensions;
+create extension if not exists postgis      with schema extensions;
+create extension if not exists "uuid-ossp"  with schema extensions;
+
+set search_path = public, extensions;
 
 -- ---------------------------------------------------------------- enums
 do $$ begin
@@ -270,6 +276,14 @@ create policy feedback_insert on accel_feedback for insert to anon with check (t
 drop policy if exists clusters_read on clusters;
 create policy clusters_read on clusters for select to anon using (true);
 
+-- Table-level privileges. RLS decides WHICH rows; grants decide whether the
+-- role may touch the table at all. Both are required.
+grant usage on schema public to anon;
+grant insert         on rides, observations, accel_feedback to anon;
+grant update         on rides, observations to anon;
+grant select         on clusters               to anon;
+-- public_map is granted where it is created, further down.
+
 -- ============================================================================
 --  Fusion
 -- ============================================================================
@@ -322,7 +336,11 @@ $$ language sql stable;
 --  Attach an observation to an existing cluster, or start a new one.
 --  `p_radius_m` must exceed typical GPS error (~8–15 m is the useful range).
 create or replace function attach_observation(p_obs_id uuid, p_radius_m double precision default 12)
-returns uuid as $$
+returns uuid
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
 declare
   v_obs      observations%rowtype;
   v_cluster  uuid;
@@ -355,11 +373,15 @@ begin
   perform refresh_cluster(v_cluster);
   return v_cluster;
 end;
-$$ language plpgsql;
+$$;
 
 -- ---- Step 3: recompute a cluster's public summary ---------------------------
 create or replace function refresh_cluster(p_cluster_id uuid)
-returns void as $$
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
 declare
   v_rides int; v_methods int; v_obs int; v_conf double precision;
 begin
@@ -417,14 +439,19 @@ begin
       else 'candidate' end
   where id = p_cluster_id;
 end;
-$$ language plpgsql;
+$$;
 
 -- Attach every new observation automatically.
-create or replace function trg_attach_observation() returns trigger as $$
+create or replace function trg_attach_observation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
 begin
   perform attach_observation(new.id);
   return new;
-end $$ language plpgsql;
+end $$;
 
 drop trigger if exists observations_attach on observations;
 create trigger observations_attach after insert on observations
@@ -437,6 +464,8 @@ select id, lat, lon, road_name, severity, damage_type, confidence,
        n_observations, n_rides, method_mix, status, last_seen
 from clusters
 where confidence >= 0.15;
+
+grant select on public_map to anon;
 
 -- ---------------------------------------------------------------- training set
 --  One row per labelled waveform: the features the detector already computes,
