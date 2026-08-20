@@ -27,6 +27,7 @@ export default function PhotoReport() {
   const [note, setNote] = useState('');
   const [stage, setStage] = useState<Stage>('idle');
   const [err, setErr] = useState<string | null>(null);
+  const [photoWarn, setPhotoWarn] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
 
   function pick(f: File | null) {
@@ -44,9 +45,17 @@ export default function PhotoReport() {
 
       setStage('sending');
       let image_path: string | null = null;
+      let photoWarning: string | null = null;
       if (file && isCloudEnabled()) {
-        const small = await shrink(file);
-        image_path = await uploadPhoto(small, `${uuid()}.jpg`);
+        try {
+          const small = await shrink(file);
+          image_path = await uploadPhoto(small, `${uuid()}.jpg`);
+        } catch (e: any) {
+          // Losing a citizen's report because storage is misconfigured is worse
+          // than keeping it without the photo. It still reaches the map, just
+          // through manual review instead of automatic verification.
+          photoWarning = e?.message ?? String(e);
+        }
       }
 
       // A pedestrian report has no ride: it is a single standing observation.
@@ -86,6 +95,7 @@ export default function PhotoReport() {
       });
 
       await flush();
+      setPhotoWarn(photoWarning);
       setStage('done');
     } catch (e: any) {
       setErr(e?.message ?? String(e));
@@ -95,7 +105,8 @@ export default function PhotoReport() {
 
   function reset() {
     setFile(null); setPreview(null); setNote('');
-    setType('pothole'); setSev('medium'); setStage('idle'); setErr(null);
+    setType('pothole'); setSev('medium'); setStage('idle');
+    setErr(null); setPhotoWarn(null);
   }
 
   if (stage === 'done') {
@@ -108,6 +119,15 @@ export default function PhotoReport() {
             Votre signalement part en vérification. Une fois confirmé, il apparaît
             sur la carte publique.
           </p>
+          {photoWarn && (
+            <div className="note warn" style={{ marginTop: 22, textAlign: 'left' }}>
+              <span>⚠️</span>
+              <span>
+                La photo n’a pas pu être envoyée : {photoWarn} Le signalement a
+                bien été enregistré et sera vérifié manuellement.
+              </span>
+            </div>
+          )}
           <div className="note" style={{ marginTop: 26, textAlign: 'left' }}>
             <span>🔒</span>
             <span>

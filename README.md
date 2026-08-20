@@ -205,8 +205,11 @@ schema is applied, every insert from the app fails.
 3. Paste and run `supabase/verify.sql`. It inserts an accelerometer hit and a
    manual report 5 m apart and asserts they fused into one cluster, then cleans
    up. If it prints `ALL CHECKS PASSED`, the backend is working end to end.
-4. Create the storage bucket (SQL at the bottom of the schema file) — only
-   needed for method 1 images.
+4. Run `supabase/migration_002_photo_reports.sql` — adds the `photo` method and
+   the verification gate. Pedestrian reports fail without it.
+5. Run `supabase/migration_003_storage.sql` — creates the `pothole-images`
+   bucket and its policies. Without it, photo upload fails with
+   "Bucket not found".
 
 ```bash
 cp .env.example .env

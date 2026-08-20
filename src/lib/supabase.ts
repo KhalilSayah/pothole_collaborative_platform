@@ -72,7 +72,15 @@ export async function uploadPhoto(blob: Blob, name: string): Promise<string> {
   const { error } = await supabase.storage
     .from('pothole-images')
     .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
-  if (error) throw error;
+  if (error) {
+    // "Bucket not found" is a server misconfiguration, not something the
+    // reporter did wrong. Say so in terms they can act on (or pass on).
+    if (/bucket not found/i.test(error.message)) {
+      throw new Error(
+        "Le stockage des photos n'est pas encore configuré sur le serveur (bucket « pothole-images » manquant).");
+    }
+    throw error;
+  }
   return path;
 }
 
