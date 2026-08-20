@@ -16,9 +16,7 @@ set search_path = public, extensions;
 -- dashcam pipeline: continuous, geo-tracked, model-scored. Photo means a person
 -- standing still who framed the shot deliberately. They have different error
 -- profiles and must stay distinguishable in the data.
-do $$ begin
-  alter type collection_method add value if not exists 'photo';
-exception when others then null; end $$;
+alter type collection_method add value if not exists 'photo';
 
 do $$ begin
   create type verification_status as enum ('pending', 'verified', 'rejected', 'review');

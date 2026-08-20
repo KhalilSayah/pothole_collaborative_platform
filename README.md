@@ -244,7 +244,10 @@ schema is applied, every insert from the app fails.
    up. If it prints `ALL CHECKS PASSED`, the backend is working end to end.
 4. Run `supabase/migration_002_photo_reports.sql` — adds the `photo` method and
    the verification gate. Pedestrian reports fail without it.
-5. Run `supabase/migration_003_storage.sql` — creates the `pothole-images`
+5. If photos reach the storage bucket but no observation row appears, run
+   `supabase/migration_004_fix_photo_enum.sql` — early copies of 002 swallowed
+   the `ALTER TYPE` error, leaving `photo` missing from the enum.
+6. Run `supabase/migration_003_storage.sql` — creates the `pothole-images`
    bucket and its policies. Without it, photo upload fails with
    "Bucket not found".
 
