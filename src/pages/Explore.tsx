@@ -8,6 +8,7 @@ export default function Explore({ rows, loading }: { rows: Cluster[]; loading: b
       {loading && (
         <div className="map-panel" style={{
           left: '50%', top: 24, transform: 'translateX(-50%)', padding: '10px 16px',
+          zIndex: 700,
         }}>
           <div className="row"><span className="spin" />Chargement de la carte…</div>
         </div>

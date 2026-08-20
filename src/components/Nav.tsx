@@ -7,7 +7,7 @@ const LINKS = [
   ['#/conduire', 'Mode conduite'],
 ];
 
-export default function Nav({ route }: { route: string }) {
+export default function Nav({ route, overlay = false }: { route: string; overlay?: boolean }) {
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -22,7 +22,7 @@ export default function Nav({ route }: { route: string }) {
   useEffect(() => setOpen(false), [route]);
 
   return (
-    <nav className={'nav' + (stuck ? ' stuck' : '')}>
+    <nav className={'nav' + (stuck ? ' stuck' : '') + (overlay && !stuck ? ' over' : '')}>
       <div className="wrap nav-in">
         <a className="logo" href="#/">
           <span className="mark">◎</span>

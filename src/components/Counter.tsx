@@ -12,6 +12,9 @@ export default function Counter({ to, dur = 1400, suffix = '' }: {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Data arrives after mount, so `to` goes 0 -> real. Without resetting the
+    // guard the count would stay frozen at the placeholder zero forever.
+    ran.current = false;
     const start = () => {
       if (ran.current) return;
       ran.current = true;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRoute } from './lib/router';
 import { fetchMap, isCloudEnabled } from './lib/supabase';
 import { startAutoSync } from './lib/sync';
+import { isDemo, demoRows } from './lib/demo';
 import type { Cluster } from './lib/types';
 
 import Nav from './components/Nav';
@@ -21,6 +22,7 @@ export default function App() {
     // The queue drains from every page, so a report made offline still uploads
     // once the visitor regains signal — even if they never open the drive screen.
     const stop = startAutoSync();
+    if (isDemo()) { setRows(demoRows()); setLoading(false); return stop; }
     if (!isCloudEnabled()) { setLoading(false); return stop; }
     fetchMap()
       .then(d => setRows(d as Cluster[]))
@@ -37,7 +39,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>
+      <main className="pad-nav">
         {route === '/carte'    ? <Explore rows={rows} loading={loading} />
        : route === '/signaler' ? <PhotoReport />
        : <Home rows={rows} loading={loading} />}

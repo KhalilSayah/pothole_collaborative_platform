@@ -26,9 +26,8 @@ const METHODS = [
   },
 ];
 
-export default function Home({ rows, loading }: { rows: Cluster[]; loading: boolean }) {
+export default function Home({ rows }: { rows: Cluster[]; loading: boolean }) {
   const high = rows.filter(r => r.severity === 'high').length;
-  const confirmed = rows.filter(r => r.status === 'confirmed').length;
   const roads = new Set(rows.map(r => r.road_name).filter(Boolean)).size;
 
   return (
@@ -39,23 +38,23 @@ export default function Home({ rows, loading }: { rows: Cluster[]; loading: bool
           <div className="hero-grid">
             <div>
               <Reveal>
-                <span className="pill"><i className="dot" />Projet ouvert · Tlemcen</span>
+                <div className="eyebrow">Cartographie citoyenne · Tlemcen</div>
               </Reveal>
               <Reveal delay={1}>
-                <h1 style={{ marginTop: 22 }}>
-                  Cartographier les routes,<br />
+                <h1 style={{ marginTop: 16 }}>
+                  Chaque nid-de-poule<br />
                   <span style={{
                     background: 'linear-gradient(135deg,#0d9488,#0891b2)',
                     WebkitBackgroundClip: 'text', backgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                  }}>ensemble</span>.
+                  }}>sur la carte.</span>
                 </h1>
               </Reveal>
               <Reveal delay={2}>
                 <p className="lede">
                   Une plateforme collaborative de signalement des dégradations
                   routières. Chacun contribue depuis son téléphone — en voiture ou
-                  à pied — et les relevés se combinent en une carte partagée.
+                  à pied — et les relevés se recoupent en une carte partagée.
                 </p>
               </Reveal>
               <Reveal delay={3}>
@@ -65,43 +64,18 @@ export default function Home({ rows, loading }: { rows: Cluster[]; loading: bool
                 </div>
               </Reveal>
               <Reveal delay={4}>
-                <p className="small muted" style={{ marginTop: 20 }}>
-                  Sans compte, sans inscription, entièrement anonyme.
-                </p>
+                <div className="hero-figs">
+                  <div><b><Counter to={rows.length} /></b><span>défauts cartographiés</span></div>
+                  <div><b><Counter to={high} /></b><span>signalés graves</span></div>
+                  <div><b><Counter to={roads} /></b><span>rues concernées</span></div>
+                </div>
               </Reveal>
             </div>
 
             <Reveal delay={2}>
-              <MapView rows={rows} height="hero" showStats={!loading} />
+              <MapView rows={rows} height="hero" />
             </Reveal>
           </div>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------- numbers */}
-      <section className="sec">
-        <div className="wrap">
-          <div className="grid g4 center">
-            {[
-              { v: rows.length, l: 'Défauts cartographiés' },
-              { v: high, l: 'Signalés comme graves' },
-              { v: confirmed, l: 'Confirmés par recoupement' },
-              { v: roads, l: 'Rues concernées' },
-            ].map((s, i) => (
-              <Reveal key={s.l} className="stat" delay={(i + 1) as 1 | 2 | 3 | 4}>
-                <b><Counter to={s.v} /></b>
-                <span>{s.l}</span>
-              </Reveal>
-            ))}
-          </div>
-          {!loading && rows.length === 0 && (
-            <Reveal className="center">
-              <div className="note" style={{ display: 'inline-flex', marginTop: 28 }}>
-                <span>🗺️</span>
-                <span>Aucun relevé pour l’instant — la carte se remplira dès les premiers signalements.</span>
-              </div>
-            </Reveal>
-          )}
         </div>
       </section>
 

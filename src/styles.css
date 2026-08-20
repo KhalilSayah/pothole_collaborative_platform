@@ -93,7 +93,12 @@ p  { margin: 0; }
 
 /* ---------------------------------------------------------------- nav */
 .nav {
-  position: sticky; top: 0; z-index: 900;
+  /* Fixed, not sticky. A sticky bar occupies layout space, which pushed the
+     hero down and left the transparent overlay nav showing the white page
+     behind it instead of the map. Fixed takes it out of flow so the hero can
+     start at y=0 and run underneath. Pages without a hero add their own
+     top padding via .pad-nav. */
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900;
   background: rgba(255,255,255,.82);
   backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid transparent;
@@ -158,19 +163,39 @@ p  { margin: 0; }
 .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 
 /* ---------------------------------------------------------------- hero */
-.hero { position: relative; padding: 72px 0 0; overflow: hidden; }
+.hero { position: relative; padding: 128px 0 84px; overflow: hidden; }
 .hero::before {
-  content: ''; position: absolute; inset: -220px 0 auto; height: 620px; z-index: -1;
+  content: ''; position: absolute; inset: -220px 0 auto; height: 640px; z-index: 0;
   background:
     radial-gradient(760px 420px at 78% 12%, rgba(13,148,136,.10), transparent 62%),
     radial-gradient(620px 380px at 14% 4%, rgba(8,145,178,.09), transparent 60%);
 }
-.hero h1 { max-width: 16ch; }
-.hero .lede { max-width: 54ch; margin-top: 20px; }
+.hero > * { position: relative; z-index: 1; }
+.hero h1 { max-width: 15ch; }
+.hero .lede { max-width: 50ch; margin-top: 20px; }
 .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+.hero .eyebrow { display: flex; align-items: center; gap: 12px; }
+.hero .eyebrow::before {
+  content: ''; width: 26px; height: 1px; background: currentColor; flex: 0 0 auto;
+}
 
-.hero-grid { display: grid; grid-template-columns: 1.02fr 1fr; gap: 56px; align-items: center; }
+.hero-grid { display: grid; grid-template-columns: 1.02fr 1.05fr; gap: 56px; align-items: center; }
 @media (max-width: 940px) { .hero-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+.hero-figs { display: flex; gap: 38px; margin-top: 44px; flex-wrap: wrap; }
+.hero-figs b {
+  display: block; font-size: 1.9rem; font-weight: 800; letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+.hero-figs span {
+  display: block; margin-top: 6px; font-size: .72rem; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--ink-3); font-weight: 600;
+}
+@media (max-width: 720px) {
+  .hero { padding: 104px 0 56px; }
+  .hero-figs { gap: 24px; margin-top: 32px; }
+  .hero-figs b { font-size: 1.5rem; }
+}
 
 /* ---------------------------------------------------------------- map */
 .map-card {
@@ -178,9 +203,33 @@ p  { margin: 0; }
   box-shadow: var(--sh-4); background: var(--bg-3);
   border: 1px solid var(--line);
 }
-.map-card.hero-map { height: min(60vh, 480px); }
+.map-card.hero { height: min(58vh, 460px); }
 .map-card.tall { height: calc(100dvh - 68px); border-radius: 0; border: 0; }
-.leaflet-container { height: 100%; width: 100%; background: #eef2f6; font: inherit; }
+.map-card.bleed { height: 100%; border-radius: 0; border: 0; box-shadow: none; }
+.map-card.dark { background: #070b14; }
+.map-card.dark .leaflet-container { background: #070b14; }
+.map-card.dark .leaflet-control-attribution {
+  background: rgba(7,11,20,.7); color: rgba(255,255,255,.45);
+}
+.map-card.dark .leaflet-control-attribution a { color: rgba(255,255,255,.6); }
+.map-card.dark .map-panel {
+  background: rgba(15,21,34,.86); border-color: rgba(255,255,255,.10); color: #e8eef7;
+}
+.map-card.dark .map-panel .muted,
+.map-card.dark .map-stat span { color: rgba(255,255,255,.5); }
+.map-card.dark .map-filters .seg { background: rgba(255,255,255,.07); }
+.map-card.dark .map-filters .seg button { color: rgba(255,255,255,.6); }
+.map-card.dark .map-filters .seg button.on { background: rgba(255,255,255,.16); color: #fff; }
+.map-card.dark .hovercard {
+  background: rgba(15,21,34,.96); border-color: rgba(255,255,255,.12); color: #e8eef7;
+}
+.map-card.dark .hovercard .mt { color: rgba(255,255,255,.55); }
+.map-card.dark .hovercard .bar i { background: rgba(255,255,255,.14); }
+.map-card > .leaflet-container {
+  position: absolute; inset: 0;
+  height: auto; width: auto;
+}
+.leaflet-container { background: #eef2f6; font: inherit; }
 .leaflet-control-attribution { font-size: 10px; background: rgba(255,255,255,.75); }
 
 /* Floating glass panels over the map. */
@@ -227,12 +276,16 @@ p  { margin: 0; }
   flex: 1; height: 3px; border-radius: 2px; background: var(--line);
 }
 
-/* Marker cluster bubbles. */
+/* Cluster bubbles: flat and solid, no ring. The reference uses weight and
+   colour alone, which stays legible against a dark basemap where a white
+   outline would read as a second, competing shape. */
 .cl {
   display: grid; place-items: center; border-radius: 50%; font-weight: 700;
-  color: #fff; box-shadow: 0 3px 10px rgba(15,23,42,.28);
-  border: 2.5px solid rgba(255,255,255,.92);
+  color: #fff; font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 5px rgba(255,255,255,.55), 0 4px 14px rgba(15,23,42,.28);
+  transition: transform .18s cubic-bezier(.16,1,.3,1);
 }
+.cl:hover { transform: scale(1.09); }
 .cl.s { width: 34px; height: 34px; font-size: .78rem; }
 .cl.m { width: 44px; height: 44px; font-size: .88rem; }
 .cl.l { width: 56px; height: 56px; font-size: .98rem; }
@@ -367,3 +420,23 @@ p  { margin: 0; }
 .stack > * + * { margin-top: 14px; }
 .row { display: flex; gap: 12px; align-items: center; }
 .grow { flex: 1; }
+
+/* Nav over the dark hero: transparent until the hero scrolls away. A solid
+   white bar sitting on the map would cut the image in half at the top. */
+.nav.over {
+  background: transparent; backdrop-filter: none; border-color: transparent;
+}
+/* Any page that is not the map-hero needs clearance for the fixed bar. */
+.pad-nav { padding-top: 68px; }
+.nav.over .logo { color: #fff; }
+.nav.over .nav-links a { color: rgba(255,255,255,.76); }
+.nav.over .nav-links a:hover { background: rgba(255,255,255,.12); color: #fff; }
+.nav.over .nav-links a.on { background: rgba(255,255,255,.14); color: #fff; }
+.nav.over .burger { color: #fff; }
+@media (max-width: 860px) {
+  /* The dropdown is opaque regardless — links over live map tiles are unreadable. */
+  .nav.over .nav-links { background: #0f1522; border-color: rgba(255,255,255,.1); }
+}
+
+/* Big ghost numerals on the method cards, as in the reference. */
+.step .n { font-size: 3.2rem; color: var(--bg-3); }
