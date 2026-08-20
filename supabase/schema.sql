@@ -167,6 +167,9 @@ create table if not exists clusters (
   first_seen      timestamptz,
   last_seen       timestamptz,
 
+  -- Representative photo, chosen from this cluster's verified observations.
+  image_path      text,
+
   -- 'candidate' : seen once, unconfirmed
   -- 'confirmed' : corroborated by independent rides or methods
   -- 'repaired'  : rides passed over it recently with no signal
@@ -485,8 +488,9 @@ create trigger observations_attach after insert on observations
 -- ---------------------------------------------------------------- public view
 --  What the map reads. Deliberately excludes anything ride-linkable.
 create or replace view public_map as
-select id, lat, lon, road_name, severity, damage_type, confidence,
-       n_observations, n_rides, method_mix, status, last_seen
+select id, lat, lon, road_name, road_type, severity, damage_type, confidence,
+       n_observations, n_rides, method_mix, status, image_path,
+       first_seen, last_seen
 from clusters
 where confidence >= 0.15;
 

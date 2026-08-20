@@ -81,7 +81,13 @@ end;
 $$;
 
 -- Republish the view with the image and the fields the focus card shows.
-create or replace view public_map as
+--
+-- Dropped rather than replaced: CREATE OR REPLACE VIEW can only append columns
+-- at the end, and this version inserts road_type mid-list, which fails with
+-- 42P16. Grants are lost with the view, so they are reapplied below.
+drop view if exists public_map;
+
+create view public_map as
 select id, lat, lon, road_name, road_type, severity, damage_type, confidence,
        n_observations, n_rides, method_mix, status, image_path,
        first_seen, last_seen
