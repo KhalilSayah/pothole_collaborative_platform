@@ -45,13 +45,16 @@ from observations;
 --  where id = 'PASTE-THE-ID-HERE';
 
 -- ---------------------------------------------------------------- 4. approve everything pending
---  For testing your own reports. Do not leave this as the routine workflow —
---  approving unseen photos defeats the point of the gate.
-update observations
-   set verification_status = 'verified',
-       verified_at = now(),
-       verification = '{"reason":"bulk_approved_for_testing"}'::jsonb
- where verification_status = 'pending';
+--  Commented out deliberately: running this file whole would otherwise approve
+--  every pending report in one go, which empties the queue the worker is meant
+--  to process and defeats the point of the gate. Uncomment only to unblock your
+--  own test reports.
+--
+-- update observations
+--    set verification_status = 'verified',
+--        verified_at = now(),
+--        verification = '{"reason":"bulk_approved_for_testing"}'::jsonb
+--  where verification_status = 'pending';
 
 -- ---------------------------------------------------------------- 5. did it reach the map?
 --  public_map hides anything below 0.15 confidence. A single verified report
