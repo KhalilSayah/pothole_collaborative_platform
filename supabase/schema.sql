@@ -298,6 +298,15 @@ grant update on rides, observations to anon;
 grant select on rides, observations to anon;
 
 grant select on clusters to anon;
+
+-- The backend role. service_role bypasses Row Level Security, but table
+-- privileges are a separate mechanism and it needs them explicitly — without
+-- these the verification worker gets 42501 "permission denied" while holding a
+-- perfectly valid service_role key.
+grant usage on schema public to service_role;
+grant select, insert, update, delete
+  on rides, observations, clusters, observation_clusters, accel_feedback
+  to service_role;
 -- public_map is granted where it is created, further down.
 
 -- ============================================================================

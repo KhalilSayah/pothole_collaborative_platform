@@ -252,7 +252,10 @@ schema is applied, every insert from the app fails.
 5. If photos reach the storage bucket but no observation row appears, run
    `supabase/migration_004_fix_photo_enum.sql` — early copies of 002 swallowed
    the `ALTER TYPE` error, leaving `photo` missing from the enum.
-6. Run `supabase/migration_003_storage.sql` — creates the `pothole-images`
+6. Run `supabase/migration_005_service_role_grants.sql` — the backend role
+   bypasses RLS but not table privileges, and every earlier grant named only
+   `anon`. Without it the verification worker gets 42501 permission denied.
+7. Run `supabase/migration_003_storage.sql` — creates the `pothole-images`
    bucket and its policies. Without it, photo upload fails with
    "Bucket not found".
 
