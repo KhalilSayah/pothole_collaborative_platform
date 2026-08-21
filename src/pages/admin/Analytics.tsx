@@ -20,7 +20,7 @@ interface Summary {
 }
 interface Flow { day: string; reported: number; repaired: number; }
 interface Aging { bucket: string; ord: number; n: number; high: number; }
-interface Road { road: string; road_type: string | null; total: number; open: number; high_open: number; avg_priority: number | null; }
+interface Road { road: string; road_type: string | null; total: number; open: number; high_open: number; avg_priority: number | null; has_exact_name?: boolean; }
 interface Deter { id: string; road_name: string | null; first_severity: string; latest_severity: string; days_span: number; priority: number | null; }
 interface Recur { id: string; road_name: string | null; sightings_since_repair: number; repaired_at: string; }
 
@@ -193,10 +193,10 @@ export default function Analytics() {
         <Frame
           title="Rues les plus touchées"
           sub="Défauts ouverts par voie"
-          note="Réparer un axe en une passe coûte bien moins cher au m² que d’y revenir trou par trou : la rue est l’unité de planification."
+          note="Réparer un axe en une passe coûte bien moins cher au m² que d’y revenir trou par trou : la rue est l’unité de planification. OpenStreetMap ne nomme que 7 % des voies à Tlemcen ; les libellés marqués ≈ sont des repères de proximité, pas des noms officiels."
         >
           <RankChart rows={roads.slice(0, 10).map(r => ({
-            label: r.road,
+            label: r.road + (r.has_exact_name === false ? ' ≈' : ''),
             value: r.open,
             color: r.high_open > 0 ? SEV.high : SERIES[0],
           }))} />

@@ -180,6 +180,33 @@ collects.
 
 ---
 
+## Street names
+
+Positions are named from a local copy of the OSM street network, not by calling
+a geocoder at runtime: street names do not change between two requests, while an
+API call per cluster would be rate-limited, slow, and would fail silently the
+day the service is down.
+
+**OSM coverage in Tlemcen is thin** — 7% of ways carry a name, 4% of residential
+streets. No geocoding API fixes that; Nominatim and the rest read the same OSM
+data. So the label falls through a hierarchy:
+
+1. the street's own name or ref — `RN 7`, `CW 1`
+2. nearest named road + neighbourhood — `Près de RN 7 — Sidi Boumediène`
+3. neighbourhood alone — `Quartier Bouhannak`
+
+Measured over 200 points sampled on real Tlemcen roads: 11.5% exact, 54%
+proximity, 32.5% neighbourhood, **2% unnamed** — against 100% unnamed before.
+
+Labels from steps 2 and 3 are marked `≈` in the UI and flagged `road_exact =
+false` in the data, so a description is never presented as an address.
+
+Load order:
+```
+supabase/data_tlemcen_roads.sql        (~1 MB, the network)
+supabase/migration_009_road_names.sql  (resolver + backfill)
+```
+
 ## Back office
 
 `#/admin` — Supabase auth, no sign-up path.

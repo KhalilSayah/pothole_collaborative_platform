@@ -134,7 +134,13 @@ export default function FocusCard({ items, onClose }: { items: Cluster[]; onClos
         )}
         <h3>{card?.label ?? 'Défaut de chaussée'}</h3>
         <p className="small muted" style={{ marginTop: 2 }}>
-          {item.road_name ?? 'Route non nommée'}
+          {item.road_name ?? 'Localisation inconnue'}
+          {/* Only 11% of positions sit on a street OSM has named. Marking the
+              rest as approximate is more useful than presenting a description
+              as if it were an address. */}
+          {item.road_name && item.road_exact === false && (
+            <span title="Nom de rue absent d’OpenStreetMap — repère approximatif"> ≈</span>
+          )}
           {when(item.last_seen) ? ` · vu ${when(item.last_seen)}` : ''}
         </p>
 

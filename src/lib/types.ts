@@ -77,6 +77,8 @@ export interface Cluster {
   last_seen: string;
   first_seen?: string;
   road_type?: string | null;
+  /** False when road_name is a proximity description, not the street's name. */
+  road_exact?: boolean;
   /** Representative photo, chosen from the cluster's verified observations. */
   image_path?: string | null;
 }
