@@ -180,6 +180,50 @@ collects.
 
 ---
 
+## Back office
+
+`#/admin` — Supabase auth, no sign-up path.
+
+**Creating an account** (dashboard only):
+1. Authentication → Users → Add user, with a password.
+2. SQL Editor: `insert into admins (user_id, email, display_name)
+   select id, email, 'Nom' from auth.users where email = 'x@y.z';`
+
+Being in `auth.users` is not enough — the `admins` row is the gate, so revoking
+access is a delete rather than a password reset.
+
+**Map** (`#/admin`): the list and the map are one view; selecting in either
+drives the other. Filter by state, search by street, mark as fixed with a note,
+reopen. Every action is written to `repairs` as history, not just a status flip:
+"was this fixed before?" is what separates a bad repair from a structurally bad
+road, and a mutable status column cannot answer it.
+
+**Analysis** (`#/admin/analyse`):
+
+| Panel | Question it answers |
+|---|---|
+| Headline tiles | how big is the backlog, and is it moving |
+| Backlog outlook | at the current rate, does the queue clear — and if not, it says so rather than printing a date |
+| Reports vs repairs | are the two flows converging (one y-axis, always) |
+| Aging buckets | how long the tail has been waiting |
+| Priority ranking | what to fix next |
+| Worst streets | which corridor to repair in one pass |
+| Deteriorating | severity rising between sightings — the only prediction the data supports |
+| Failed repairs | fixed, then reported again |
+
+Priority is a transparent formula, not a model — severity 40, exposure 25, road
+class 20, certainty 15. A crew has to be able to argue with the ranking; a score
+nobody can explain gets ignored the first time it disagrees with judgement. Age
+is deliberately excluded: a defect does not become more dangerous by being
+ignored, and including it would let a trivial pothole outrank a dangerous one
+simply by having waited longer.
+
+Chart colours were run through a validator against the real surface, not chosen
+by eye — see `src/lib/viz.ts`. Two results changed the design: teal+cyan failed
+the normal-vision floor (ΔE 6.9 against a floor of 15), and the severity trio
+sits under 3:1 on white, which obliges every severity mark to carry a written
+label.
+
 ## Verifying photo reports
 
 Nothing verifies automatically. There is no cron, no Edge Function, no

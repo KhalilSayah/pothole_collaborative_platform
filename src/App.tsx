@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import Explore from './pages/Explore';
 import PhotoReport from './pages/PhotoReport';
 import DriveApp from './DriveApp';
+import AdminShell from './pages/admin/AdminShell';
 
 export default function App() {
   const route = useRoute();
@@ -35,6 +36,10 @@ export default function App() {
   // Mixing it with the marketing nav would waste the vertical space the card
   // grid needs, and a light header beside a dark screen looks broken.
   if (route === '/conduire') return <DriveApp />;
+
+  // The back office is its own world: no marketing nav, no footer, and it
+  // manages its own authentication gate.
+  if (route.startsWith('/admin')) return <AdminShell route={route} />;
 
   return (
     <>

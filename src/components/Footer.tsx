@@ -9,6 +9,7 @@ export default function Footer() {
         <span className="grow" />
         <span>Données ouvertes · OpenStreetMap</span>
         <span>Aucune donnée personnelle collectée</span>
+        <a href="#/admin" style={{ opacity: .6 }}>Gestion</a>
       </div>
     </footer>
   );
