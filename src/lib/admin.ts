@@ -18,12 +18,29 @@ const need = () => {
 };
 
 export async function fetchClusters(): Promise<AdminCluster[]> {
-  const { data, error } = await need()
+  const sb = need();
+  const { data, error } = await sb
     .from('clusters')
     .select('*')
     .order('priority', { ascending: false, nullsFirst: false })
     .limit(3000);
   if (error) throw error;
+
+  // An RLS policy that does not cover the caller's role returns an empty list
+  // with HTTP 200 — indistinguishable from an empty database. public_map is a
+  // view and bypasses RLS, so rows there but none here identifies the cause
+  // precisely instead of leaving a blank screen to interpret.
+  if (!data?.length) {
+    const { count } = await sb
+      .from('public_map')
+      .select('id', { count: 'exact', head: true });
+    if ((count ?? 0) > 0) {
+      throw new Error(
+        `La base contient ${count} signalements, mais aucun n'est lisible avec ce compte. ` +
+        'Il manque une policy de lecture sur `clusters` pour le rôle authenticated — ' +
+        'lancez supabase/migration_008_admin_read.sql.');
+    }
+  }
   return (data ?? []) as AdminCluster[];
 }
 

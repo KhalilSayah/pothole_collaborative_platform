@@ -279,6 +279,12 @@ create policy feedback_insert on accel_feedback for insert to anon with check (t
 drop policy if exists clusters_read on clusters;
 create policy clusters_read on clusters for select to anon using (true);
 
+-- Signing in switches the role from anon to authenticated, so a policy naming
+-- only anon stops applying to staff and the back office reads zero rows.
+drop policy if exists clusters_read_authed on clusters;
+create policy clusters_read_authed on clusters for select to authenticated
+  using (true);
+
 -- Table-level privileges. RLS decides WHICH rows; grants decide whether the
 -- role may touch the table at all. Both are required.
 grant usage on schema public to anon;
